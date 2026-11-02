@@ -7,7 +7,7 @@ import { JoinRoomForm } from "../features/rooms/components/EntryForms";
 import { WaitingRoom } from "../features/rooms/components/WaitingRoom";
 import { RetroScreen } from "../features/retro/components/RetroScreen";
 import { takePendingEntry } from "../features/rooms/pendingEntry";
-import { clearSession, loadSession } from "../features/rooms/session";
+import { clearSession, loadSession, saveSession } from "../features/rooms/session";
 import type { EnterResult, Session } from "../features/rooms/types";
 import { useRoomLive, type RoomNotice } from "../features/rooms/useRoomLive";
 import { Link, roomPath, useRouter } from "../lib/router";
@@ -30,7 +30,9 @@ export function RoomPage({ code: rawCode }: { code: string }) {
         navigate(roomPath(entry.room.code));
         return;
       }
-      setGate({ step: "inside", session: toSession(entry), entry, key: Date.now() });
+      const session = toSession(entry);
+      saveSession(session); // fija la identidad en esta pestaña
+      setGate({ step: "inside", session, entry, key: Date.now() });
       if (fresh && entry.reconnected) {
         toast(
           "success",
