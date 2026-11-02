@@ -9,6 +9,7 @@ type Auth = Pick<Session, "participantId" | "token">;
 const auth = (s: Auth) => ({ p_participant_id: s.participantId, p_token: s.token });
 
 export type PhaseAction = "pause" | "resume" | "extend" | "close" | "next";
+export type ReviewAction = "next" | "skip" | "prev" | "goto" | "next_category" | "finish";
 
 export const retroApi = {
   configure: (s: Auth, title: string, durations: Record<PhaseId, number>) =>
@@ -18,6 +19,33 @@ export const retroApi = {
 
   control: (s: Auth, action: PhaseAction, phase: PhaseId, seconds?: number) =>
     rpc<RoomState>("phase_control", { ...auth(s), p_action: action, p_phase: phase, p_seconds: seconds ?? null }),
+
+  // --- Módulo 3 · Revisión ---
+  startReview: (s: Auth) => rpc<RoomState>("start_review", auth(s)),
+
+  /** `expectedCategory` / `expectedCard`: lo que ve el PO (evita dobles clics). */
+  reviewNavigate: (
+    s: Auth,
+    action: ReviewAction,
+    expectedCategory: PhaseId,
+    expectedCard: string | null,
+    target?: string,
+  ) =>
+    rpc<RoomState>("review_navigate", {
+      ...auth(s),
+      p_action: action,
+      p_expected_category: expectedCategory,
+      p_expected_card: expectedCard,
+      p_target: target ?? null,
+    }),
+
+  updateCardReview: (s: Auth, cardId: string, change: { notes?: string; needsAction?: boolean }) =>
+    rpc<RoomState>("update_card_review", {
+      ...auth(s),
+      p_card: cardId,
+      p_notes: change.notes ?? null,
+      p_needs_action: change.needsAction ?? null,
+    }),
 
   addCard: (
     s: Auth,

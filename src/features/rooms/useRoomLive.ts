@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRoomChannel } from "../../lib/realtime/useRoomChannel";
 import { RoomError, roomsApi } from "./api";
-import type { Card, EnterResult, Participant, PhaseProgress, Room, RoomState, Session } from "./types";
+import type { Card, EnterResult, Participant, PhaseProgress, ReviewState, Room, RoomState, Session } from "./types";
 
 const HEARTBEAT_MS = 20_000;
 /** Durante la retro se refresca más seguido como respaldo de los eventos en tiempo real. */
@@ -31,6 +31,7 @@ export function useRoomLive(session: Session, initial: EnterResult, notify: (n: 
   const [contributors, setContributors] = useState(0);
   /** true cuando ya llegó el estado completo (tarjetas, progreso, timer) del servidor. */
   const [hydrated, setHydrated] = useState(false);
+  const [review, setReview] = useState<ReviewState | null>(null);
   // Diferencia entre el reloj del servidor y el local (ms). Se guarda la
   // muestra con menor latencia, que es la más precisa.
   const [serverOffset, setServerOffset] = useState(0);
@@ -58,6 +59,7 @@ export function useRoomLive(session: Session, initial: EnterResult, notify: (n: 
     setMyCards(state.myCards ?? []);
     setProgress(state.progress ?? EMPTY_PROGRESS);
     setContributors(state.contributors ?? 0);
+    setReview(state.review ?? null);
     setHydrated(true);
     if (state.serverNow && sentAt !== undefined) {
       const now = Date.now();
@@ -226,6 +228,8 @@ export function useRoomLive(session: Session, initial: EnterResult, notify: (n: 
     refresh,
     // Módulo 2
     hydrated,
+    // Módulo 3
+    review,
     myCards,
     progress,
     contributors,

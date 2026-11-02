@@ -10,6 +10,7 @@ import { PHASES, nextPhase, phaseById } from "../phases";
 import { useCountdown } from "../useCountdown";
 import { CardComposer } from "./CardComposer";
 import { PhaseTimer } from "./PhaseTimer";
+import { ReviewScreen } from "../../review/ReviewScreen";
 
 /**
  * Pantalla de la retrospectiva en curso (status = in_progress).
@@ -21,9 +22,30 @@ export function RetroScreen({ live, onLeave }: { live: RoomLive; onLeave: () => 
   const { room } = live;
   const phase = room.currentPhase;
 
-  // Punto de conexión con el módulo 3 (mezcla aleatoria y revisión colectiva).
-  const onContinueToReview = () =>
-    toast("info", "La revisión de tarjetas estará disponible en el próximo módulo de RetroFlow.");
+  // Módulo 3: el PO inicia la revisión (la base mezcla las tarjetas una sola vez).
+  const [startingReview, setStartingReview] = useState(false);
+  const onContinueToReview = async () => {
+    setStartingReview(true);
+    try {
+      await live.runAction(() => retroApi.startReview(live.session));
+      await live.channel.send("room:updated", { status: "in_progress" }).catch(() => undefined);
+    } catch (e) {
+      toast("error", e instanceof RoomError ? e.message : "No pudimos iniciar la revisión.");
+    } finally {
+      setStartingReview(false);
+    }
+  };
+
+  // Punto de conexión con el módulo 4 (conversación abierta).
+  const onContinueToConversation = () =>
+    toast("info", "La conversación abierta estará disponible en el próximo módulo de RetroFlow.");
+
+  const inReview = phase === "review" || phase === "review_done";
+  const tonePhase: PhaseId | null = inReview
+    ? (live.review?.category ?? null)
+    : phase && phase !== "done"
+      ? phase
+      : null;
 
   let content;
   if (!live.hydrated)
@@ -33,13 +55,14 @@ export function RetroScreen({ live, onLeave }: { live: RoomLive; onLeave: () => 
         <p className="muted">Recuperando la retrospectiva…</p>
       </div>
     );
-  else if (phase === "done") content = <CollectionDone live={live} onContinue={onContinueToReview} />;
+  else if (inReview) content = <ReviewScreen live={live} onContinue={onContinueToConversation} />;
+  else if (phase === "done") content = <CollectionDone live={live} onContinue={onContinueToReview} busy={startingReview} />;
   else if (!phase) content = <div className="center-screen"><span className="spinner spinner--lg" /></div>;
   else if (room.phaseStatus === "closed") content = <PhaseTransition live={live} phase={phase} />;
   else content = <PhaseBoard key={phase} live={live} phase={phase} />;
 
   return (
-    <div className={`page retro tone-${phase && phase !== "done" ? phaseById(phase).tone : "violet"}`}>
+    <div className={`page retro tone-${tonePhase ? phaseById(tonePhase).tone : "violet"}`}>
       <RetroBar live={live} onLeave={onLeave} />
       {live.connection !== "online" && (
         <div className="banner" role="status">
@@ -66,7 +89,17 @@ function RetroBar({ live, onLeave }: { live: RoomLive; onLeave: () => void }) {
           </span>
         </div>
       </div>
-      <PhaseStepper current={live.room.currentPhase} closed={live.room.phaseStatus === "closed"} />
+      {live.room.currentPhase === "review" || live.room.currentPhase === "review_done" ? (
+        <div className="stepper-wrap">
+          <span className="stepper-label">Revisión</span>
+          <PhaseStepper
+            current={live.room.currentPhase === "review_done" ? "done" : (live.review?.category ?? null)}
+            closed={false}
+          />
+        </div>
+      ) : (
+        <PhaseStepper current={live.room.currentPhase} closed={live.room.phaseStatus === "closed"} />
+      )}
       <div className="room-bar__end">
         {live.isPO && <span className="role-tag">PO</span>}
         {asking ? (
@@ -255,7 +288,7 @@ function PhaseTransition({ live, phase }: { live: RoomLive; phase: PhaseId }) {
 // ---------------------------------------------------------------------------
 // Fin de la carga
 // ---------------------------------------------------------------------------
-function CollectionDone({ live, onContinue }: { live: RoomLive; onContinue: () => void }) {
+function CollectionDone({ live, onContinue, busy }: { live: RoomLive; onContinue: () => void; busy: boolean }) {
   return (
     <main className="transition done" data-testid="collection-done">
       <div className="done__burst" aria-hidden="true">
@@ -277,7 +310,8 @@ function CollectionDone({ live, onContinue }: { live: RoomLive; onContinue: () =
         </div>
       </div>
       {live.isPO ? (
-        <button className="btn btn--primary btn--lg" onClick={onContinue}>
+        <button className="btn btn--primary btn--lg" onClick={onContinue} disabled={busy}>
+          {busy ? <span className="spinner" /> : null}
           Continuar a la revisión de tarjetas
         </button>
       ) : (

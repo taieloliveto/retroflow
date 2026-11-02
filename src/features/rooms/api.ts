@@ -25,6 +25,12 @@ export type RoomErrorCode =
   | "INVALID_DURATION"
   | "INVALID_ACTION"
   | "DB_OUTDATED"
+  | "COLLECTION_NOT_DONE"
+  | "REVIEW_NOT_ACTIVE"
+  | "REVIEW_CHANGED"
+  | "CARD_NOT_FOUND"
+  | "CATEGORY_LOCKED"
+  | "NOTES_TOO_LONG"
   | "NETWORK";
 
 const MESSAGES: Record<RoomErrorCode, string> = {
@@ -46,6 +52,12 @@ const MESSAGES: Record<RoomErrorCode, string> = {
   INVALID_TITLE: "El nombre de la retrospectiva puede tener hasta 60 caracteres.",
   INVALID_DURATION: "Cada fase debe durar entre 1 y 60 minutos.",
   INVALID_ACTION: "Acción no válida.",
+  COLLECTION_NOT_DONE: "La revisión se puede iniciar cuando termina la carga de tarjetas.",
+  REVIEW_NOT_ACTIVE: "La revisión no está en curso.",
+  REVIEW_CHANGED: "La revisión avanzó. Actualizamos tu pantalla.",
+  CARD_NOT_FOUND: "No encontramos esa tarjeta.",
+  CATEGORY_LOCKED: "Las categorías se revisan en orden: Destacar, Mejorar y Mantener.",
+  NOTES_TOO_LONG: "Los accionables pueden tener hasta 4000 caracteres.",
   DB_OUTDATED:
     "La base de datos no tiene esta función. Ejecutá las migraciones de supabase/migrations en orden y luego `notify pgrst, 'reload schema';` en el SQL Editor.",
   NETWORK: "No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.",

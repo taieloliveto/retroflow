@@ -8,8 +8,39 @@ export type Role = "po" | "collaborator";
 
 /** Fases de carga (módulo 2). El orden es fijo y lo garantiza la base. */
 export type PhaseId = "destacar" | "mejorar" | "mantener";
-/** "done" = terminó la carga de las tres fases. */
-export type CurrentPhase = PhaseId | "done" | null;
+/**
+ * "done" = terminó la carga · "review" = revisión en curso (módulo 3) ·
+ * "review_done" = resumen final de la revisión.
+ */
+export type CurrentPhase = PhaseId | "done" | "review" | "review_done" | null;
+
+/** Módulo 3 · Revisión */
+export type ReviewStatus = "pending" | "in_review" | "reviewed";
+
+export interface ReviewCard {
+  id: string;
+  phase: PhaseId;
+  /** Posición dentro de su categoría (orden aleatorio fijo). */
+  order: number;
+  title: string;
+  body: string;
+  anonymous: boolean;
+  /** Nombre del autor, solo si la tarjeta NO es anónima. */
+  authorName: string | null;
+  status: ReviewStatus;
+  needsAction: boolean;
+  /** "Accionables" registrados por el PO. */
+  notes: string;
+}
+
+export interface ReviewState {
+  category: PhaseId;
+  /** Categoría más avanzada alcanzada. */
+  reached: PhaseId;
+  /** Tarjeta en pantalla; null = resumen de la categoría. */
+  cardId: string | null;
+  cards: ReviewCard[];
+}
 export type PhaseStatus = "active" | "closed" | null;
 
 export interface RoomTimer {
@@ -82,4 +113,6 @@ export interface RoomState {
   progress: PhaseProgress;
   /** Cantidad de personas que aportaron al menos una tarjeta. */
   contributors: number;
+  /** Solo durante la revisión (módulo 3). */
+  review?: ReviewState | null;
 }

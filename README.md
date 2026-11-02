@@ -7,6 +7,8 @@ Plataforma web para retrospectivas Scrum virtuales.
 - **Módulo 2 · Carga de tarjetas:** configuración de la retro (nombre y tiempos), inicio sincronizado,
   fases Destacar → Mejorar → Mantener con timer centralizado, tarjetas con anonimato real,
   transiciones controladas por el PO y resumen final de carga.
+- **Módulo 3 · Revisión de tarjetas:** mezcla aleatoria por categoría, una tarjeta a la vez para todos,
+  navegación del PO, Accionables, marca "Generar acción", estados de revisión y resúmenes.
 
 **Stack (todo gratuito):** React + Vite + TypeScript · Supabase (Postgres + Realtime, plan Free) · Vercel (plan Hobby).
 
@@ -20,9 +22,10 @@ Plataforma web para retrospectivas Scrum virtuales.
    pegando cada uno completo y tocando **Run**:
    1. `0001_salas.sql`
    2. `0002_fases_tarjetas.sql`
+   3. `0003_revision.sql`
 
-   Se pueden volver a ejecutar sin problemas, pero siempre en ese orden: si volvés a correr la 0001,
-   corré la 0002 después.
+   Se pueden volver a ejecutar sin problemas, pero siempre en ese orden: si volvés a correr una,
+   corré también todas las siguientes.
 3. Andá a **Project Settings → API** y copiá:
    - **Project URL** → `VITE_SUPABASE_URL`
    - **anon / publishable key** → `VITE_SUPABASE_ANON_KEY` (es pública por diseño; nunca uses la `service_role`).
@@ -84,7 +87,8 @@ git push -u origin main
 ### Funciones RPC disponibles
 `create_room(name)` · `join_room(code, name)` · `resume_session(id, token)` ·
 `get_room_state(id, token)` (también es el "latido") · `leave_room(id, token)` · `finish_room(id, token)` (solo PO) ·
-`configure_room` (solo PO) · `start_retrospective` (solo PO) · `phase_control` (solo PO) · `add_card`.
+`configure_room` (solo PO) · `start_retrospective` (solo PO) · `phase_control` (solo PO) · `add_card` ·
+`start_review` (solo PO) · `review_navigate` (solo PO) · `update_card_review` (solo PO).
 
 ---
 
@@ -105,11 +109,29 @@ git push -u origin main
 > el autor (`cards.author_id`) para mostrarte tus propias tarjetas y contar contribuciones; solo alguien con
 > acceso de administrador al proyecto de Supabase podría consultarlo con SQL.
 
+## Módulo 3 · Revisión de tarjetas
+
+| Tema | Cómo funciona |
+|---|---|
+| Inicio | Desde el cierre de carga, el PO toca "Continuar a la revisión de tarjetas" (`start_review`) y todos entran a la revisión |
+| Mezcla | Al iniciar, la base asigna un orden aleatorio **dentro de cada categoría** (`cards.review_order`), una sola vez. Recargar o reconectarse no lo cambia |
+| Tarjeta compartida | La sala guarda la categoría y la tarjeta en pantalla (`rooms.review_category`, `rooms.review_card_id`). Todos ven exactamente eso |
+| Navegación (solo PO) | `review_navigate`: **Revisada · siguiente** (marca revisada), **Saltar** (queda pendiente), **Anterior**, ir a cualquier tarjeta desde el mapa numerado, retomar pendientes y pasar de categoría. Atajos ← → en el teclado |
+| Estados | `pending` / `in_review` / `reviewed`, independientes de la marca `needs_action` ("Generar acción") |
+| Accionables | Notas del PO por tarjeta (`cards.po_notes`). Se guardan solas al escribir y también al cambiar de tarjeta. El resto las ve en tiempo real y no puede editarlas |
+| Resúmenes | Al terminar cada categoría: total, revisadas, pendientes y para acción. Se puede seguir aunque queden pendientes y retomarlas después, incluso desde el resumen final |
+| Anonimato | Recién en la revisión se comparten las tarjetas del equipo. Las anónimas llegan **sin nombre ni id de autor**, también al PO |
+
+Las tarjetas marcadas con `needs_action = true` son las candidatas para el módulo de planes de acción.
+El botón "Continuar a la conversación abierta" está listo para conectar el módulo siguiente
+(`onContinueToConversation` en `RetroScreen.tsx`).
+
 ## Estructura
 
 ```
 supabase/migrations/0001_salas.sql   Salas y participantes: tablas, RLS y RPC
 supabase/migrations/0002_fases_tarjetas.sql  Fases, timer y tarjetas
+supabase/migrations/0003_revision.sql  Revisión: orden, estados, notas y navegación
 src/
   lib/
     supabase.ts                      Cliente Supabase
@@ -130,6 +152,9 @@ src/
     components/RetroScreen.tsx       Pantalla de la retro: fase, transición y cierre
     components/PhaseTimer.tsx        Timer + controles del PO
     components/CardComposer.tsx      Redacción de tarjetas y anonimato
+  features/review/                   Módulo 3
+    ReviewScreen.tsx                 Tarjeta en pantalla, controles del PO, Accionables, resúmenes
+    stats.ts                         Conteos por categoría y búsqueda de pendientes
   pages/HomePage.tsx, RoomPage.tsx
   styles/global.css                  Identidad visual (sin dependencias de CSS)
 ```
