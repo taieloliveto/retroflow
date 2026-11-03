@@ -151,6 +151,8 @@ function RoomLiveView({
   // Según el estado de la sala se renderiza el módulo correspondiente.
   switch (live.room.status) {
     case "finished":
+      // Retro cerrada desde la definición de compromisos: se muestra el cierre con el listado final.
+      if (live.room.currentPhase === "closed") return <RetroScreen live={live} onLeave={leave} />;
       return <FinishedRoom code={live.room.code} onExit={leave} />;
     case "in_progress":
       return <RetroScreen live={live} onLeave={leave} />;

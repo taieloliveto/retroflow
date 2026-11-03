@@ -31,6 +31,9 @@ export type RoomErrorCode =
   | "CARD_NOT_FOUND"
   | "CATEGORY_LOCKED"
   | "NOTES_TOO_LONG"
+  | "REVIEW_NOT_DONE"
+  | "COMMITMENTS_CLOSED"
+  | "INVALID_COMMITMENT"
   | "NETWORK";
 
 const MESSAGES: Record<RoomErrorCode, string> = {
@@ -58,6 +61,10 @@ const MESSAGES: Record<RoomErrorCode, string> = {
   CARD_NOT_FOUND: "No encontramos esa tarjeta.",
   CATEGORY_LOCKED: "Las categorías se revisan en orden: Destacar, Mejorar y Mantener.",
   NOTES_TOO_LONG: "Los accionables pueden tener hasta 4000 caracteres.",
+  REVIEW_NOT_DONE: "Los compromisos se definen cuando termina la revisión de tarjetas.",
+  COMMITMENTS_CLOSED: "La definición de compromisos ya está cerrada.",
+  INVALID_COMMITMENT:
+    "Revisá el compromiso: la acción es obligatoria (hasta 1000 caracteres) y puede tener hasta 20 responsables.",
   DB_OUTDATED:
     "La base de datos no tiene esta función. Ejecutá las migraciones de supabase/migrations en orden y luego `notify pgrst, 'reload schema';` en el SQL Editor.",
   NETWORK: "No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.",

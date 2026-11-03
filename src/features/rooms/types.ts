@@ -12,7 +12,30 @@ export type PhaseId = "destacar" | "mejorar" | "mantener";
  * "done" = terminó la carga · "review" = revisión en curso (módulo 3) ·
  * "review_done" = resumen final de la revisión.
  */
-export type CurrentPhase = PhaseId | "done" | "review" | "review_done" | null;
+export type CurrentPhase =
+  | PhaseId
+  | "done"
+  | "review"
+  | "review_done"
+  /** Módulo 4: definición de compromisos y retro cerrada. */
+  | "commitments"
+  | "closed"
+  | null;
+
+export type CommitmentStatus = "pending" | "in_progress" | "done";
+
+export interface Commitment {
+  id: string;
+  /** Tarjeta de la que surge. */
+  cardId: string;
+  action: string;
+  /** Nombres de integrantes de la sala o de personas externas. */
+  owners: string[];
+  /** "AAAA-MM-DD" o null. */
+  dueDate: string | null;
+  status: CommitmentStatus;
+  createdAt: string;
+}
 
 /** Módulo 3 · Revisión */
 export type ReviewStatus = "pending" | "in_review" | "reviewed";
@@ -113,6 +136,8 @@ export interface RoomState {
   progress: PhaseProgress;
   /** Cantidad de personas que aportaron al menos una tarjeta. */
   contributors: number;
-  /** Solo durante la revisión (módulo 3). */
+  /** Solo durante la revisión y después (módulo 3). */
   review?: ReviewState | null;
+  /** Solo durante la definición de compromisos y el cierre (módulo 4). */
+  commitments?: Commitment[] | null;
 }

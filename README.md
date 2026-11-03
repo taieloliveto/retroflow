@@ -9,6 +9,9 @@ Plataforma web para retrospectivas Scrum virtuales.
   transiciones controladas por el PO y resumen final de carga.
 - **Módulo 3 · Revisión de tarjetas:** mezcla aleatoria por categoría, una tarjeta a la vez para todos,
   navegación del PO, Accionables, marca "Generar acción", estados de revisión y resúmenes.
+- **Módulo 4 · Definición de compromisos:** a partir de las tarjetas marcadas, el PO define compromisos
+  (acción, responsables internos o externos, fecha objetivo y estado), cierra la retro y descarga el
+  resultado en Excel (.xlsx).
 
 **Stack (todo gratuito):** React + Vite + TypeScript · Supabase (Postgres + Realtime, plan Free) · Vercel (plan Hobby).
 
@@ -23,6 +26,7 @@ Plataforma web para retrospectivas Scrum virtuales.
    1. `0001_salas.sql`
    2. `0002_fases_tarjetas.sql`
    3. `0003_revision.sql`
+   4. `0004_compromisos.sql`
 
    Se pueden volver a ejecutar sin problemas, pero siempre en ese orden: si volvés a correr una,
    corré también todas las siguientes.
@@ -88,7 +92,8 @@ git push -u origin main
 `create_room(name)` · `join_room(code, name)` · `resume_session(id, token)` ·
 `get_room_state(id, token)` (también es el "latido") · `leave_room(id, token)` · `finish_room(id, token)` (solo PO) ·
 `configure_room` (solo PO) · `start_retrospective` (solo PO) · `phase_control` (solo PO) · `add_card` ·
-`start_review` (solo PO) · `review_navigate` (solo PO) · `update_card_review` (solo PO).
+`start_review` (solo PO) · `review_navigate` (solo PO) · `update_card_review` (solo PO) ·
+`start_commitments` · `save_commitment` · `delete_commitment` · `finish_commitments` (todas solo PO).
 
 ---
 
@@ -126,12 +131,25 @@ Las tarjetas marcadas con `needs_action = true` son las candidatas para el módu
 El botón "Continuar a la conversación abierta" está listo para conectar el módulo siguiente
 (`onContinueToConversation` en `RetroScreen.tsx`).
 
+## Módulo 4 · Definición de compromisos
+
+| Tema | Cómo funciona |
+|---|---|
+| Inicio | Desde el resumen de la revisión, el PO toca "Continuar a la definición de compromisos" (`start_commitments`) |
+| Tarjetas | Se muestran las marcadas con "Generar acción", con su contenido original y los Accionables registrados en la revisión |
+| Compromisos | Acción (arranca con el accionable), responsables de la sala o externos, fecha objetivo opcional y estado (pendiente / en progreso / completada). Se pueden crear varios por tarjeta, editarlos y eliminarlos. El id lo genera el navegador: guardar dos veces no duplica |
+| Permisos | Solo el PO crea, edita y elimina (lo valida la base). Todos ven los cambios en tiempo real |
+| Finalización | "Finalizar definición de compromisos" muestra un resumen (totales, con y sin responsable, con y sin fecha, tarjetas sin compromisos) y permite cerrar igual si faltan datos |
+| Cierre | La sala pasa a `finished` / `closed`: todos ven el listado definitivo y nadie más puede ingresar |
+| Excel | El PO descarga un .xlsx (se abre en Excel y Google Sheets). Hoja **Resultado**: Tipo, Título, Descripción, Accionable, Responsable, Plazo y Estado. Primero los compromisos, después las tarjetas sin compromiso con accionables y al final el resto. Hoja **Datos de la retro**: nombre, código, fecha, PO, participantes y totales. Se genera en el navegador, sin librerías externas (`src/lib/xlsx.ts`) |
+
 ## Estructura
 
 ```
 supabase/migrations/0001_salas.sql   Salas y participantes: tablas, RLS y RPC
 supabase/migrations/0002_fases_tarjetas.sql  Fases, timer y tarjetas
 supabase/migrations/0003_revision.sql  Revisión: orden, estados, notas y navegación
+supabase/migrations/0004_compromisos.sql  Compromisos y cierre de la retro
 src/
   lib/
     supabase.ts                      Cliente Supabase
@@ -155,6 +173,10 @@ src/
   features/review/                   Módulo 3
     ReviewScreen.tsx                 Tarjeta en pantalla, controles del PO, Accionables, resúmenes
     stats.ts                         Conteos por categoría y búsqueda de pendientes
+  features/commitments/              Módulo 4
+    CommitmentsScreen.tsx            Definición, editor, confirmación y cierre
+    export.ts                        Armado del Excel de resultados
+  lib/xlsx.ts                        Generador de .xlsx sin dependencias
   pages/HomePage.tsx, RoomPage.tsx
   styles/global.css                  Identidad visual (sin dependencias de CSS)
 ```

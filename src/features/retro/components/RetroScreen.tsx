@@ -11,6 +11,7 @@ import { useCountdown } from "../useCountdown";
 import { CardComposer } from "./CardComposer";
 import { PhaseTimer } from "./PhaseTimer";
 import { ReviewScreen } from "../../review/ReviewScreen";
+import { CommitmentsScreen } from "../../commitments/CommitmentsScreen";
 
 /**
  * Pantalla de la retrospectiva en curso (status = in_progress).
@@ -36,16 +37,20 @@ export function RetroScreen({ live, onLeave }: { live: RoomLive; onLeave: () => 
     }
   };
 
-  // Punto de conexión con el módulo 4 (conversación abierta).
-  const onContinueToConversation = () =>
-    toast("info", "La conversación abierta estará disponible en el próximo módulo de RetroFlow.");
+  // Módulo 4: desde el resumen de la revisión, el PO pasa a definir compromisos.
+  const onContinueToCommitments = async () => {
+    try {
+      await live.runAction(() => retroApi.startCommitments(live.session));
+      await live.channel.send("room:updated", { status: "in_progress" }).catch(() => undefined);
+    } catch (e) {
+      toast("error", e instanceof RoomError ? e.message : "No pudimos pasar a la definición de compromisos.");
+    }
+  };
 
   const inReview = phase === "review" || phase === "review_done";
-  const tonePhase: PhaseId | null = inReview
-    ? (live.review?.category ?? null)
-    : phase && phase !== "done"
-      ? phase
-      : null;
+  const inCommitments = phase === "commitments" || phase === "closed";
+  const isCardPhase = (p: unknown): p is PhaseId => p === "destacar" || p === "mejorar" || p === "mantener";
+  const tonePhase: PhaseId | null = inReview ? (live.review?.category ?? null) : isCardPhase(phase) ? phase : null;
 
   let content;
   if (!live.hydrated)
@@ -55,7 +60,8 @@ export function RetroScreen({ live, onLeave }: { live: RoomLive; onLeave: () => 
         <p className="muted">Recuperando la retrospectiva…</p>
       </div>
     );
-  else if (inReview) content = <ReviewScreen live={live} onContinue={onContinueToConversation} />;
+  else if (inCommitments) content = <CommitmentsScreen live={live} />;
+  else if (inReview) content = <ReviewScreen live={live} onContinue={onContinueToCommitments} />;
   else if (phase === "done") content = <CollectionDone live={live} onContinue={onContinueToReview} busy={startingReview} />;
   else if (!phase) content = <div className="center-screen"><span className="spinner spinner--lg" /></div>;
   else if (room.phaseStatus === "closed") content = <PhaseTransition live={live} phase={phase} />;
@@ -89,7 +95,11 @@ function RetroBar({ live, onLeave }: { live: RoomLive; onLeave: () => void }) {
           </span>
         </div>
       </div>
-      {live.room.currentPhase === "review" || live.room.currentPhase === "review_done" ? (
+      {live.room.currentPhase === "commitments" || live.room.currentPhase === "closed" ? (
+        <span className="stage-pill">
+          {live.room.currentPhase === "closed" ? "Retro cerrada" : "Definición de compromisos"}
+        </span>
+      ) : live.room.currentPhase === "review" || live.room.currentPhase === "review_done" ? (
         <div className="stepper-wrap">
           <span className="stepper-label">Revisión</span>
           <PhaseStepper

@@ -1,5 +1,5 @@
 import { rpc } from "../rooms/api";
-import type { PhaseId, RoomState, Session } from "../rooms/types";
+import type { CommitmentStatus, PhaseId, RoomState, Session } from "../rooms/types";
 
 /**
  * RPC del módulo 2. Todas devuelven el estado completo de la sala para
@@ -46,6 +46,28 @@ export const retroApi = {
       p_notes: change.notes ?? null,
       p_needs_action: change.needsAction ?? null,
     }),
+
+  // --- Módulo 4 · Compromisos ---
+  startCommitments: (s: Auth) => rpc<RoomState>("start_commitments", auth(s)),
+
+  /** Crea o edita (el id lo genera el navegador: reintentar no duplica). */
+  saveCommitment: (
+    s: Auth,
+    c: { id: string; cardId: string; action: string; owners: string[]; dueDate: string | null; status: CommitmentStatus },
+  ) =>
+    rpc<RoomState>("save_commitment", {
+      ...auth(s),
+      p_id: c.id,
+      p_card: c.cardId,
+      p_action: c.action,
+      p_owners: c.owners,
+      p_due_date: c.dueDate || null,
+      p_status: c.status,
+    }),
+
+  deleteCommitment: (s: Auth, id: string) => rpc<RoomState>("delete_commitment", { ...auth(s), p_id: id }),
+
+  finishCommitments: (s: Auth) => rpc<RoomState>("finish_commitments", auth(s)),
 
   addCard: (
     s: Auth,

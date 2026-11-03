@@ -14,7 +14,7 @@ import { cardsOf, firstPending, rank, statsFor, type ReviewStats } from "./stats
  * acción) sale del estado compartido de la sala: todos ven lo mismo.
  * Solo el PO navega y registra; el resto mira.
  */
-export function ReviewScreen({ live, onContinue }: { live: RoomLive; onContinue: () => void }) {
+export function ReviewScreen({ live, onContinue }: { live: RoomLive; onContinue: () => Promise<void> | void }) {
   const review = live.review;
   const flushNotes = useRef<() => Promise<void>>(async () => undefined);
   const nav = useReviewNav(live, flushNotes);
@@ -469,8 +469,9 @@ function CategorySummary({ live, review, nav }: { live: RoomLive; review: Review
 // ---------------------------------------------------------------------------
 // Resumen final
 // ---------------------------------------------------------------------------
-function ReviewDone({ live, review, nav, onContinue }: { live: RoomLive; review: ReviewState; nav: Nav; onContinue: () => void }) {
+function ReviewDone({ live, review, nav, onContinue }: { live: RoomLive; review: ReviewState; nav: Nav; onContinue: () => Promise<void> | void }) {
   const total = statsFor(review.cards);
+  const [continuing, setContinuing] = useState(false);
   const pending = firstPending(review);
   return (
     <main className="transition review-done" data-testid="review-done">
@@ -521,8 +522,16 @@ function ReviewDone({ live, review, nav, onContinue }: { live: RoomLive; review:
 
       {live.isPO ? (
         <div className="review-summary__actions">
-          <button className="btn btn--primary btn--lg" onClick={onContinue}>
-            Continuar a la conversación abierta
+          <button
+            className="btn btn--primary btn--lg"
+            onClick={async () => {
+              setContinuing(true);
+              await onContinue();
+              setContinuing(false);
+            }}
+            disabled={continuing}
+          >
+            Continuar a la definición de compromisos
           </button>
           {pending && (
             <button className="btn btn--soft" onClick={() => nav.go("goto", pending.id)} disabled={nav.busy}>
@@ -532,7 +541,7 @@ function ReviewDone({ live, review, nav, onContinue }: { live: RoomLive; review:
         </div>
       ) : (
         <p className="waiting-po">
-          <span className="status-pill__pulse" /> Esperando que el PO continúe a la conversación abierta…
+          <span className="status-pill__pulse" /> Esperando que el PO continúe con la definición de compromisos…
         </p>
       )}
     </main>
