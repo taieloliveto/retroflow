@@ -1,12 +1,58 @@
 import { useState } from "react";
 import { Logo } from "../components/Logo";
-import { Avatar } from "../components/Avatar";
 import { CreateRoomForm, JoinRoomForm } from "../features/rooms/components/EntryForms";
 import { setPendingEntry } from "../features/rooms/pendingEntry";
 import type { EnterResult } from "../features/rooms/types";
-import { roomPath, useRouter } from "../lib/router";
+import { IdentityCard } from "../features/theme/IdentityCard";
+import { THEMES } from "../features/theme/themes";
+import { Link, roomPath, useRouter } from "../lib/router";
 
+/** Portada: presentación de Retronadas y botón para empezar. */
 export function HomePage() {
+  const { navigate } = useRouter();
+  return (
+    <div className="page home theme theme-normal">
+      <header className="topbar">
+        <Logo size={44} />
+      </header>
+
+      <main className="landing">
+        <section className="landing__text">
+          <span className="landing__badge">Retrospectivas que se disfrutan</span>
+          <h1 className="hero__title">
+            Las mejores mejoras empiezan con una <span className="hl">conversación</span>
+          </h1>
+          <p className="hero__subtitle">Un espacio para compartir, reflexionar y construir mejores equipos.</p>
+          <ul className="landing__steps">
+            <li>
+              <span>1</span> Creás la sala y compartís el código
+            </li>
+            <li>
+              <span>2</span> Cada uno escribe qué destacar, mejorar y mantener
+            </li>
+            <li>
+              <span>3</span> Lo revisan juntos y definen compromisos
+            </li>
+          </ul>
+          <button className="btn btn--primary btn--xl" onClick={() => navigate("/empezar")} data-testid="vamos">
+            ¡Vamos!
+          </button>
+        </section>
+
+        <section className="landing__art" aria-hidden="true">
+          <IdentityCard phase="destacar" className="fan fan--1" />
+          <IdentityCard phase="mejorar" className="fan fan--2" />
+          <IdentityCard phase="mantener" className="fan fan--3" />
+        </section>
+      </main>
+
+      <footer className="footer">Retronadas 2.0 · Retrospectivas colaborativas para equipos ágiles</footer>
+    </div>
+  );
+}
+
+/** Segunda vista: crear una retrospectiva o ingresar a una existente. */
+export function StartPage() {
   const { navigate } = useRouter();
   const [creating, setCreating] = useState(false);
 
@@ -16,40 +62,21 @@ export function HomePage() {
   };
 
   return (
-    <div className="page home">
-      <div className="bg-blobs" aria-hidden="true">
-        <span className="blob blob--violet" />
-        <span className="blob blob--coral" />
-        <span className="blob blob--mint" />
-      </div>
-
-      <header className="topbar topbar--home">
-        <Logo />
+    <div className="page home theme theme-normal">
+      <header className="topbar">
+        <Link to="/">
+          <Logo size={44} />
+        </Link>
+        <Link to="/" className="btn btn--ghost btn--sm">
+          ← Volver
+        </Link>
       </header>
 
       <main className="home__main">
-        <section className="hero">
-          <div className="hero__team" aria-hidden="true">
-            {["Sofi Ruiz", "Mati", "Juli Paz", "Nico", "Caro Díaz"].map((n, i) => (
-              <span key={n} style={{ zIndex: 10 - i }}>
-                <Avatar name={n} size={40} />
-              </span>
-            ))}
-            <span className="hero__team-label">Tu equipo, en la misma sala</span>
-          </div>
-          <h1 className="hero__title">
-            Las mejores mejoras empiezan con una <span className="hl">conversación</span>
-          </h1>
-          <p className="hero__subtitle">Un espacio para compartir, reflexionar y construir mejores equipos.</p>
-        </section>
-
+        <h1 className="start__title">¿Qué querés hacer?</h1>
         <section className="actions">
           <article className="action-card action-card--create">
-            <div className="action-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="26" height="26">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-              </svg>
-            </div>
+            <img className="action-card__char" src={THEMES.normal.alt} alt="" draggable={false} />
             <h2 className="action-card__title">Crear retrospectiva</h2>
             <p className="action-card__text">Abrí una sala nueva, compartí el código y facilitá la reunión como PO.</p>
             {!creating && (
@@ -63,7 +90,7 @@ export function HomePage() {
                 <li>
                   <span className="perks__icon">★</span>
                   <span>
-                    <strong>Sos el PO</strong>: vas a ver el panel para iniciar la retro.
+                    <strong>Sos el PO</strong>: elegís la temática y guiás la retro.
                   </span>
                 </li>
                 <li>
@@ -84,13 +111,7 @@ export function HomePage() {
           </article>
 
           <article className="action-card action-card--join">
-            <div className="action-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <path d="M10 17l5-5-5-5" />
-                <path d="M15 12H3" />
-              </svg>
-            </div>
+            <img className="action-card__char" src={THEMES.normal.characters.mantener} alt="" draggable={false} />
             <h2 className="action-card__title">Ingresar a una retrospectiva</h2>
             <p className="action-card__text">¿Te pasaron un código? Sumate a la sala de tu equipo.</p>
             <JoinRoomForm onEntered={onEntered} />
@@ -98,7 +119,7 @@ export function HomePage() {
         </section>
       </main>
 
-      <footer className="footer">RetroFlow · Retrospectivas colaborativas para equipos ágiles</footer>
+      <footer className="footer">Retronadas 2.0 · Retrospectivas colaborativas para equipos ágiles</footer>
     </div>
   );
 }

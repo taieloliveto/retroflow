@@ -8,10 +8,14 @@ import type { RoomLive } from "../useRoomLive";
 import { retroApi } from "../../retro/api";
 import { PHASES } from "../../retro/phases";
 import { RetroSetupForm, useRetroSetup } from "../../retro/components/RetroSetup";
+import { ThemePicker } from "../../theme/ThemePicker";
+import { IdentityCard } from "../../theme/IdentityCard";
+import { themeOf } from "../../theme/themes";
 
 export function WaitingRoom({ live, onLeave }: { live: RoomLive; onLeave: () => void }) {
   const toast = useToast();
   const { room, participants, me, isPO, isOnline, connectedCount, connection } = live;
+  const theme = themeOf(room.theme);
 
   const copy = async (text: string, okMsg: string) => {
     const ok = await copyText(text);
@@ -55,15 +59,18 @@ export function WaitingRoom({ live, onLeave }: { live: RoomLive; onLeave: () => 
       <main className="room__grid">
         <div className="room__main">
           <section className="welcome">
-            <div className="welcome__art" aria-hidden="true">
-              <span className="note note--1" />
-              <span className="note note--2" />
-              <span className="note note--3" />
-            </div>
             <div>
+              <span className="welcome__brand">Retronadas · {theme.name}</span>
               <h1 className="welcome__title">¡Ya estamos preparando la retrospectiva!</h1>
               <p className="welcome__text">Compartí el código con tu equipo para que todos puedan sumarse.</p>
             </div>
+            <img className="welcome__char" src={theme.hero} alt="" draggable={false} data-testid="welcome-char" />
+          </section>
+
+          <section className="id-strip" aria-label="Categorías de la retro">
+            <IdentityCard phase="destacar" theme={theme.id} />
+            <IdentityCard phase="mejorar" theme={theme.id} />
+            <IdentityCard phase="mantener" theme={theme.id} />
           </section>
 
           <section className="people">
@@ -102,6 +109,10 @@ export function WaitingRoom({ live, onLeave }: { live: RoomLive; onLeave: () => 
           <section className="card info">
             <h2 className="section-title">Información de la reunión</h2>
             <dl className="info__list">
+              <div>
+                <dt>Temática</dt>
+                <dd data-testid="info-theme">{theme.name}</dd>
+              </div>
               {room.title && (
                 <div>
                   <dt>Retrospectiva</dt>
@@ -183,6 +194,7 @@ function PoPanel({ live }: { live: RoomLive }) {
         <span>{live.connectedCount === 1 ? "persona conectada" : "personas conectadas"}</span>
       </div>
 
+      <ThemePicker live={live} />
       <RetroSetupForm setup={setup} />
 
       <button className="btn btn--primary btn--block btn--lg" onClick={start} disabled={starting}>

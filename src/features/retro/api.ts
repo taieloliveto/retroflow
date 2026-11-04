@@ -48,6 +48,9 @@ export const retroApi = {
     }),
 
   // --- Módulo 4 · Compromisos ---
+  /** Temática de la sala (solo PO). */
+  setTheme: (s: Auth, theme: string) => rpc<RoomState>("set_room_theme", { ...auth(s), p_theme: theme }),
+
   startCommitments: (s: Auth) => rpc<RoomState>("start_commitments", auth(s)),
 
   /** Crea o edita (el id lo genera el navegador: reintentar no duplica). */

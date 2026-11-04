@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import { CharacterTrio } from "../theme/IdentityCard";
+import { themeOf } from "../theme/themes";
 import { Avatar } from "../../components/Avatar";
 import { useToast } from "../../components/Toasts";
 import { RoomError } from "../rooms/api";
@@ -21,6 +23,7 @@ export function CommitmentsScreen({ live }: { live: RoomLive }) {
   return (
     <main className="commit" data-testid="commitments">
       <section className="commit-head">
+        <img className="commit-head__char" src={themeOf(live.room.theme).hero} alt="" draggable={false} />
         <span className="review-head__eyebrow">Última etapa</span>
         <h1 className="commit-head__title">Definición de compromisos</h1>
         <p className="commit-head__text">
@@ -417,11 +420,7 @@ function ClosureScreen({ live }: { live: RoomLive }) {
 
   return (
     <main className="transition closure" data-testid="closure">
-      <div className="done__burst" aria-hidden="true">
-        <span className="tone-blue" />
-        <span className="tone-coral" />
-        <span className="tone-green" />
-      </div>
+      <CharacterTrio theme={live.room.theme} />
       <h1 className="transition__title">¡Retro cerrada! Estos son nuestros compromisos</h1>
       <p className="transition__line">
         {commitments.length === 0

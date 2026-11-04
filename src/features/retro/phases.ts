@@ -7,8 +7,8 @@ export interface PhaseDef {
   name: string;
   verb: string;
   question: string;
-  /** Clase CSS de color: azul, coral, verde. */
-  tone: "blue" | "coral" | "green";
+  /** Clase CSS de color (identidad Retronadas): teal, coral, mostaza. */
+  tone: "teal" | "coral" | "mustard";
   /** Textos de la pantalla de transición al terminar esta fase. */
   doneTitle: string;
   nextLine?: string;
@@ -21,7 +21,7 @@ export const PHASES: PhaseDef[] = [
     name: "Destacar",
     verb: "destacar",
     question: "¿Qué cosas salieron especialmente bien durante este sprint o período y vale la pena destacar?",
-    tone: "blue",
+    tone: "teal",
     doneTitle: "¡Terminamos de destacar!",
     nextLine: "Ahora vamos a identificar qué podemos mejorar.",
   },
@@ -41,7 +41,7 @@ export const PHASES: PhaseDef[] = [
     name: "Mantener",
     verb: "mantener",
     question: "¿Qué prácticas, dinámicas o comportamientos deberíamos mantener porque nos aportan valor?",
-    tone: "green",
+    tone: "mustard",
     doneTitle: "¡Terminamos de mantener!",
   },
 ];

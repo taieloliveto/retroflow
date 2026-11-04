@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
+import { CharacterTrio } from "../theme/IdentityCard";
+import { themeOf } from "../theme/themes";
 import { Avatar } from "../../components/Avatar";
 import { useToast } from "../../components/Toasts";
 import { RoomError } from "../rooms/api";
@@ -193,6 +195,7 @@ function CardView({
     <div className="review__grid">
       <div className="review__stage">
         <article className={`big-card tone-${def.tone}`} data-testid="review-card">
+          <img className="big-card__char" src={themeOf(live.room.theme).characters[card.phase]} alt="" draggable={false} />
           <header className="big-card__head">
             <span className="big-card__cat">{def.name}</span>
             <span className={`status-chip status-chip--${card.status}`} data-testid="card-status">
@@ -405,7 +408,7 @@ function StatTiles({ st, testid }: { st: ReviewStats; testid?: string }) {
         <strong data-testid="st-total">{st.total}</strong>
         <span>tarjetas</span>
       </div>
-      <div className="summary__tile tone-green">
+      <div className="summary__tile tone-mustard">
         <strong data-testid="st-reviewed">{st.reviewed}</strong>
         <span>revisadas</span>
       </div>
@@ -413,7 +416,7 @@ function StatTiles({ st, testid }: { st: ReviewStats; testid?: string }) {
         <strong data-testid="st-pending">{st.pending}</strong>
         <span>pendientes</span>
       </div>
-      <div className="summary__tile tone-blue">
+      <div className="summary__tile tone-teal">
         <strong data-testid="st-actions">{st.actions}</strong>
         <span>para generar acción</span>
       </div>
@@ -429,7 +432,7 @@ function CategorySummary({ live, review, nav }: { live: RoomLive; review: Review
 
   return (
     <section className="transition review-summary" data-testid="category-summary">
-      <div className={`transition__badge tone-${def.tone}`}>✓</div>
+      <img className="transition__char" src={themeOf(live.room.theme).characters[review.category]} alt="" draggable={false} />
       <h2 className="transition__title">
         {st.total === 0 ? `No hubo tarjetas en ${def.name}` : `Terminamos de revisar ${def.name}`}
       </h2>
@@ -475,11 +478,7 @@ function ReviewDone({ live, review, nav, onContinue }: { live: RoomLive; review:
   const pending = firstPending(review);
   return (
     <main className="transition review-done" data-testid="review-done">
-      <div className="done__burst" aria-hidden="true">
-        <span className="tone-blue" />
-        <span className="tone-coral" />
-        <span className="tone-green" />
-      </div>
+      <CharacterTrio theme={live.room.theme} />
       <h1 className="transition__title">¡Revisión completa!</h1>
       <p className="transition__line">Así quedó lo que conversamos como equipo.</p>
 

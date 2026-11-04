@@ -2,7 +2,7 @@ import { Logo } from "./components/Logo";
 import { ToastProvider } from "./components/Toasts";
 import { isSupabaseConfigured } from "./lib/supabase";
 import { Link, RouterProvider, useRouter } from "./lib/router";
-import { HomePage } from "./pages/HomePage";
+import { HomePage, StartPage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
 
 function Routes() {
@@ -11,6 +11,8 @@ function Routes() {
   switch (route.name) {
     case "home":
       return <HomePage />;
+    case "start":
+      return <StartPage />;
     case "room":
       return <RoomPage key={route.code} code={route.code} />;
     default:

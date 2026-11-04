@@ -7,11 +7,13 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 export type Route =
   | { name: "home" }
+  | { name: "start" }
   | { name: "room"; code: string }
   | { name: "not-found" };
 
 export function matchRoute(pathname: string): Route {
   if (pathname === "/" || pathname === "") return { name: "home" };
+  if (/^\/empezar\/?$/i.test(pathname)) return { name: "start" };
   const room = pathname.match(/^\/sala\/([^/]+)\/?$/i);
   if (room) return { name: "room", code: decodeURIComponent(room[1]).toUpperCase() };
   return { name: "not-found" };

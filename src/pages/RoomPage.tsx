@@ -11,6 +11,7 @@ import { clearSession, loadSession, saveSession } from "../features/rooms/sessio
 import type { EnterResult, Session } from "../features/rooms/types";
 import { useRoomLive, type RoomNotice } from "../features/rooms/useRoomLive";
 import { Link, roomPath, useRouter } from "../lib/router";
+import { preloadTheme, themeOf } from "../features/theme/themes";
 
 type Gate =
   | { step: "checking" }
@@ -76,7 +77,7 @@ export function RoomPage({ code: rawCode }: { code: string }) {
 
   if (gate.step === "checking") {
     return (
-      <div className="page center-screen">
+      <div className="page center-screen theme theme-normal">
         <span className="spinner spinner--lg" />
         <p className="muted">Entrando a la sala…</p>
       </div>
@@ -85,11 +86,7 @@ export function RoomPage({ code: rawCode }: { code: string }) {
 
   if (gate.step === "join") {
     return (
-      <div className="page center-screen">
-        <div className="bg-blobs" aria-hidden="true">
-          <span className="blob blob--violet" />
-          <span className="blob blob--coral" />
-        </div>
+      <div className="page center-screen theme theme-normal">
         <Link to="/" className="center-screen__logo">
           <Logo />
         </Link>
@@ -148,18 +145,34 @@ function RoomLiveView({
     navigate("/");
   };
 
+  // La temática elegida por el PO se aplica a todas las pantallas de la sala.
+  const theme = themeOf(live.room.theme);
+  useEffect(() => preloadTheme(theme), [theme]);
+
   // Según el estado de la sala se renderiza el módulo correspondiente.
+  let screen;
   switch (live.room.status) {
     case "finished":
       // Retro cerrada desde la definición de compromisos: se muestra el cierre con el listado final.
-      if (live.room.currentPhase === "closed") return <RetroScreen live={live} onLeave={leave} />;
-      return <FinishedRoom code={live.room.code} onExit={leave} />;
+      screen =
+        live.room.currentPhase === "closed" ? (
+          <RetroScreen live={live} onLeave={leave} />
+        ) : (
+          <FinishedRoom code={live.room.code} onExit={leave} />
+        );
+      break;
     case "in_progress":
-      return <RetroScreen live={live} onLeave={leave} />;
+      screen = <RetroScreen live={live} onLeave={leave} />;
+      break;
     case "waiting":
     default:
-      return <WaitingRoom live={live} onLeave={leave} />;
+      screen = <WaitingRoom live={live} onLeave={leave} />;
   }
+  return (
+    <div className={`theme theme-${theme.id}`} data-theme={theme.id}>
+      {screen}
+    </div>
+  );
 }
 
 function FinishedRoom({ code, onExit }: { code: string; onExit: () => void }) {

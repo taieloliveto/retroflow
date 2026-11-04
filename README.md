@@ -1,4 +1,4 @@
-# RetroFlow
+# Retronadas 2.0
 
 Plataforma web para retrospectivas Scrum virtuales.
 
@@ -9,6 +9,8 @@ Plataforma web para retrospectivas Scrum virtuales.
   transiciones controladas por el PO y resumen final de carga.
 - **Módulo 3 · Revisión de tarjetas:** mezcla aleatoria por categoría, una tarjeta a la vez para todos,
   navegación del PO, Accionables, marca "Generar acción", estados de revisión y resúmenes.
+- **Identidad Retronadas 2.0 y temáticas:** portada con "¡Vamos!", colores y personajes de la identidad,
+  y 4 temáticas que elige el PO (Normal, Halloween, Argentina y Mario).
 - **Módulo 4 · Definición de compromisos:** a partir de las tarjetas marcadas, el PO define compromisos
   (acción, responsables internos o externos, fecha objetivo y estado), cierra la retro y descarga el
   resultado en Excel (.xlsx).
@@ -27,6 +29,7 @@ Plataforma web para retrospectivas Scrum virtuales.
    2. `0002_fases_tarjetas.sql`
    3. `0003_revision.sql`
    4. `0004_compromisos.sql`
+   5. `0005_tematicas.sql`
 
    Se pueden volver a ejecutar sin problemas, pero siempre en ese orden: si volvés a correr una,
    corré también todas las siguientes.
@@ -93,7 +96,7 @@ git push -u origin main
 `get_room_state(id, token)` (también es el "latido") · `leave_room(id, token)` · `finish_room(id, token)` (solo PO) ·
 `configure_room` (solo PO) · `start_retrospective` (solo PO) · `phase_control` (solo PO) · `add_card` ·
 `start_review` (solo PO) · `review_navigate` (solo PO) · `update_card_review` (solo PO) ·
-`start_commitments` · `save_commitment` · `delete_commitment` · `finish_commitments` (todas solo PO).
+`start_commitments` · `save_commitment` · `delete_commitment` · `finish_commitments` · `set_room_theme` (todas solo PO).
 
 ---
 
@@ -143,6 +146,20 @@ El botón "Continuar a la conversación abierta" está listo para conectar el m�
 | Cierre | La sala pasa a `finished` / `closed`: todos ven el listado definitivo y nadie más puede ingresar |
 | Excel | El PO descarga un .xlsx (se abre en Excel y Google Sheets). Hoja **Resultado**: Tipo, Título, Descripción, Accionable, Responsable, Plazo y Estado. Primero los compromisos, después las tarjetas sin compromiso con accionables y al final el resto. Hoja **Datos de la retro**: nombre, código, fecha, PO, participantes y totales. Se genera en el navegador, sin librerías externas (`src/lib/xlsx.ts`) |
 
+## Identidad y temáticas
+
+- **Colores:** Destacar `#74B6A8` (teal), Mejorar `#E96048` (coral), Mantener `#E5AD58` (mostaza).
+  El coral es además el color de los botones principales.
+- **Tipografías:** Lilita One (títulos) y Nunito (textos), incluidas en `public/fonts` (licencia OFL):
+  no dependen de Google Fonts.
+- **Temáticas:** el PO las elige en la sala de espera (`set_room_theme`, guardada en `rooms.settings.theme`)
+  y se pueden cambiar mientras la retro no esté cerrada. Cambian los personajes de cada categoría, el
+  personaje principal y el fondo de todas las pantallas, para todos en tiempo real.
+- **Personajes:** `public/characters/{tema}-{categoría}.webp` (por ejemplo `mario-mejorar.webp`), recortados con
+  fondo transparente de la identidad visual. Para cambiar uno, reemplazá el archivo por otro con el mismo nombre.
+  `normal2-*` son las variantes del personaje base que se usan en la portada y la sala de espera.
+  Definición de cada temática: `src/features/theme/themes.ts`.
+
 ## Estructura
 
 ```
@@ -150,6 +167,8 @@ supabase/migrations/0001_salas.sql   Salas y participantes: tablas, RLS y RPC
 supabase/migrations/0002_fases_tarjetas.sql  Fases, timer y tarjetas
 supabase/migrations/0003_revision.sql  Revisión: orden, estados, notas y navegación
 supabase/migrations/0004_compromisos.sql  Compromisos y cierre de la retro
+supabase/migrations/0005_tematicas.sql  Temática de la sala
+public/characters, public/fonts, public/logo.png  Personajes, tipografías y logo
 src/
   lib/
     supabase.ts                      Cliente Supabase
@@ -176,6 +195,7 @@ src/
   features/commitments/              Módulo 4
     CommitmentsScreen.tsx            Definición, editor, confirmación y cierre
     export.ts                        Armado del Excel de resultados
+  features/theme/                    Temáticas: personajes, tarjeta de identidad y selector del PO
   lib/xlsx.ts                        Generador de .xlsx sin dependencias
   pages/HomePage.tsx, RoomPage.tsx
   styles/global.css                  Identidad visual (sin dependencias de CSS)

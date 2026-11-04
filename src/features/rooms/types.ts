@@ -92,6 +92,8 @@ export interface Room {
   status: RoomStatus;
   /** Nombre opcional definido por el PO. */
   title: string | null;
+  /** Temática elegida por el PO: normal | halloween | argentina | mario. */
+  theme: string;
   currentPhase: CurrentPhase;
   phaseStatus: PhaseStatus;
   /** Duración de cada fase en segundos. */

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CharacterTrio } from "../../theme/IdentityCard";
+import { themeOf } from "../../theme/themes";
 import { Avatar } from "../../../components/Avatar";
 import { Logo } from "../../../components/Logo";
 import { useToast } from "../../../components/Toasts";
@@ -91,7 +93,8 @@ function RetroBar({ live, onLeave }: { live: RoomLive; onLeave: () => void }) {
         <div className="retro-bar__title">
           <span className="retro-bar__name" data-testid="retro-title">{retroTitle(live)}</span>
           <span className="retro-bar__meta">
-            Sala <span className="mono">{live.room.code}</span> · {live.connectedCount} conectados
+            Sala <span className="mono">{live.room.code}</span> · {live.connectedCount} conectados ·{" "}
+            {themeOf(live.room.theme).name}
           </span>
         </div>
       </div>
@@ -160,14 +163,19 @@ function PhaseBoard({ live, phase }: { live: RoomLive; phase: PhaseId }) {
 
   return (
     <main className="retro__main">
-      <section className="phase-hero">
+      <section className={`phase-hero tone-${def.tone}`}>
         <div className="phase-hero__text">
-          <span className="phase-hero__eyebrow">
-            Fase {def.number} de 3
-          </span>
+          <span className="phase-hero__eyebrow">Retronadas · Fase {def.number} de 3</span>
           <h1 className="phase-hero__name" data-testid="phase-name">{def.name}</h1>
           <p className="phase-hero__question">{def.question}</p>
         </div>
+        <img
+          className="phase-hero__char"
+          src={themeOf(live.room.theme).characters[phase]}
+          alt=""
+          draggable={false}
+          data-testid="phase-char"
+        />
         <PhaseTimer live={live} phase={phase} />
       </section>
 
@@ -266,7 +274,7 @@ function PhaseTransition({ live, phase }: { live: RoomLive; phase: PhaseId }) {
 
   return (
     <main className="transition" data-testid="transition">
-      <div className={`transition__badge tone-${def.tone}`}>✓</div>
+      <img className="transition__char" src={themeOf(live.room.theme).characters[phase]} alt="" draggable={false} />
       <h1 className="transition__title">{def.doneTitle}</h1>
       <p className="transition__line">{def.nextLine}</p>
       <p className="transition__saved">
@@ -274,6 +282,7 @@ function PhaseTransition({ live, phase }: { live: RoomLive; phase: PhaseId }) {
       </p>
 
       <article className={`next-phase tone-${next.tone}`}>
+        <img className="next-phase__char" src={themeOf(live.room.theme).characters[next.id]} alt="" draggable={false} />
         <span className="next-phase__eyebrow">
           Próxima fase · {next.number} de 3 · {minutes} min
         </span>
@@ -301,11 +310,7 @@ function PhaseTransition({ live, phase }: { live: RoomLive; phase: PhaseId }) {
 function CollectionDone({ live, onContinue, busy }: { live: RoomLive; onContinue: () => void; busy: boolean }) {
   return (
     <main className="transition done" data-testid="collection-done">
-      <div className="done__burst" aria-hidden="true">
-        <span className="tone-blue" />
-        <span className="tone-coral" />
-        <span className="tone-green" />
-      </div>
+      <CharacterTrio theme={live.room.theme} />
       <h1 className="transition__title">¡Excelente! Ya tenemos todas las perspectivas del equipo.</h1>
       <div className="summary">
         {PHASES.map((p) => (

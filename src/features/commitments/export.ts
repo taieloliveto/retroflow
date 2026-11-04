@@ -49,7 +49,9 @@ export function downloadRetroResult(live: RoomLive) {
   const cards = live.review?.cards ?? [];
   const commitments = live.commitments ?? [];
   const title = live.room.title ?? `Retrospectiva ${live.room.code}`;
-  const date = (live.room.finishedAt ?? live.room.createdAt).slice(0, 10);
+  // Fecha local (no UTC): una retro cerrada a la noche no queda con la fecha del día siguiente.
+  const d = new Date(live.room.finishedAt ?? live.room.createdAt);
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
   const result: SheetSpec = {
     name: "Resultado",
@@ -88,5 +90,5 @@ export function downloadRetroResult(live: RoomLive) {
   };
 
   const safe = title.replace(/[^\p{L}\p{N} _-]+/gu, "").trim().replace(/\s+/g, "-") || live.room.code;
-  downloadXlsx(`RetroFlow-${safe}-${date}.xlsx`, [result, info]);
+  downloadXlsx(`Retronadas-${safe}-${date}.xlsx`, [result, info]);
 }

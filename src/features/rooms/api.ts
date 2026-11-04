@@ -34,6 +34,7 @@ export type RoomErrorCode =
   | "REVIEW_NOT_DONE"
   | "COMMITMENTS_CLOSED"
   | "INVALID_COMMITMENT"
+  | "INVALID_THEME"
   | "NETWORK";
 
 const MESSAGES: Record<RoomErrorCode, string> = {
@@ -65,6 +66,7 @@ const MESSAGES: Record<RoomErrorCode, string> = {
   COMMITMENTS_CLOSED: "La definición de compromisos ya está cerrada.",
   INVALID_COMMITMENT:
     "Revisá el compromiso: la acción es obligatoria (hasta 1000 caracteres) y puede tener hasta 20 responsables.",
+  INVALID_THEME: "Esa temática no existe.",
   DB_OUTDATED:
     "La base de datos no tiene esta función. Ejecutá las migraciones de supabase/migrations en orden y luego `notify pgrst, 'reload schema';` en el SQL Editor.",
   NETWORK: "No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.",
@@ -88,14 +90,14 @@ export async function rpc<T>(fn: string, args: Record<string, unknown>): Promise
     const msg = res.error.message ?? "";
     const pgCode = (res.error as { code?: string }).code ?? "";
     if (pgCode === "PGRST202" || msg.includes("schema cache")) {
-      console.error(`[RetroFlow] RPC ${fn} no encontrada en Supabase:`, res.error);
+      console.error(`[Retronadas] RPC ${fn} no encontrada en Supabase:`, res.error);
       throw new RoomError("DB_OUTDATED");
     }
     // Se busca el código más largo primero (p. ej. ROOM_NOT_IN_PROGRESS antes que ROOM_NOT_FOUND).
     const known = (Object.keys(MESSAGES) as RoomErrorCode[])
       .sort((a, b) => b.length - a.length)
       .find((c) => msg === c || msg.includes(c));
-    if (!known) console.error(`[RetroFlow] Error en RPC ${fn}:`, res.error);
+    if (!known) console.error(`[Retronadas] Error en RPC ${fn}:`, res.error);
     throw new RoomError(known ?? "NETWORK");
   }
   return res.data as T;
