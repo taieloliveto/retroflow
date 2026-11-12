@@ -68,6 +68,13 @@ git push -u origin main
 
 ---
 
+### Evitar que Supabase pause el proyecto
+En el plan gratuito, Supabase pausa los proyectos sin actividad durante 7 días. El workflow
+`.github/workflows/supabase-keepalive.yml` hace una consulta liviana cada 2 días para mantenerlo activo.
+Si igual se pausa: Supabase → el proyecto → **Resume project** (los datos se conservan).
+GitHub desactiva los workflows programados de un repo sin cambios durante 60 días: si pasa,
+reactivalo desde la pestaña **Actions**.
+
 ## Cómo funciona
 
 | Necesidad | Solución |

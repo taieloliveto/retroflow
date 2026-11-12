@@ -1,0 +1,38 @@
+# Mantiene activo el proyecto de Supabase (plan gratuito).
+# Supabase pausa los proyectos gratuitos que no tienen actividad durante 7 días.
+# Este workflow hace una consulta liviana a la base cada 2 días.
+#
+# La URL y la clave publishable son públicas por diseño (ya están en la app
+# publicada), por eso pueden ir acá.
+#
+# Para correrlo a mano: GitHub → Actions → "Mantener Supabase activo" → Run workflow.
+name: Mantener Supabase activo
+
+on:
+  schedule:
+    - cron: "23 13 */2 * *" # cada 2 días, 10:23 hora argentina
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta liviana a la base
+        env:
+          SUPABASE_URL: https://pxckatiomfvceaxrnjbz.supabase.co
+          SUPABASE_KEY: sb_publishable_06VPxDiaJ9xHr1H0F4F9PQ_FsCce_Ai
+        run: |
+          # Busca la sala "000000", que nunca existe (los códigos no usan el 0):
+          # no crea ni modifica nada, pero ejecuta una consulta real en la base.
+          res=$(curl -sS -m 60 --retry 3 --retry-delay 10 \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/join_room" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"p_code":"000000","p_name":"keepalive"}')
+          echo "Respuesta: $res"
+          if echo "$res" | grep -q "ROOM_NOT_FOUND"; then
+            echo "Supabase respondió: el proyecto está activo."
+          else
+            echo "::error::Supabase no respondió como se esperaba. Si el proyecto está pausado, reanudalo desde el panel de Supabase."
+            exit 1
+          fi
